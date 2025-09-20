@@ -81,3 +81,4 @@ D:\Capstone Project v4\Session_Management_System\obj\Debug\net9.0\Session_Manage
 D:\Capstone Project v4\Session_Management_System\obj\Debug\net9.0\Session_Management_System.genruntimeconfig.cache
 D:\Capstone Project v4\Session_Management_System\obj\Debug\net9.0\ref\Session_Management_System.dll
 D:\Capstone Project v4\Session_Management_System\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\Capstone Project v4\Session_Management_System\obj\Debug\net9.0\Session_Management_System.sourcelink.json
