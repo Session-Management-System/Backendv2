@@ -22,7 +22,7 @@ namespace Session_Management_System.Controllers
         [HttpPost("book/{sessionId}")]
         public async Task<IActionResult> BookSession(int sessionId)
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             try
             {
                 var bookingId = await _userService.BookSessionAsync(userId, sessionId);
@@ -38,7 +38,7 @@ namespace Session_Management_System.Controllers
         [HttpDelete("cancel/{bookingId}")]
         public async Task<IActionResult> CancelBooking(int bookingId)
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var success = await _userService.CancelBookingAsync(bookingId, userId);
             if (!success) return NotFound(new { Message = "Booking not found or already cancelled" });
             return Ok(new { Message = "Booking cancelled successfully" });
@@ -48,7 +48,7 @@ namespace Session_Management_System.Controllers
         [HttpGet("bookings")]
         public async Task<IActionResult> GetUserBookings()
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var bookings = await _userService.GetUserBookingsAsync(userId);
             return Ok(bookings);
         }
@@ -57,7 +57,7 @@ namespace Session_Management_System.Controllers
         [HttpGet("bookings/upcoming")]
         public async Task<IActionResult> GetUpcomingBookings()
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var bookings = await _userService.GetUpcomingBookingsAsync(userId);
             return Ok(bookings);
         }
@@ -66,7 +66,7 @@ namespace Session_Management_System.Controllers
         [HttpGet("completed")]
         public async Task<IActionResult> GetCompletedSessions()
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var sessions = await _userService.GetCompletedSessionsAsync(userId);
             return Ok(sessions);
         }
@@ -75,7 +75,7 @@ namespace Session_Management_System.Controllers
         [HttpGet("stats")]
         public async Task<IActionResult> GetUserStats()
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var stats = await _userService.GetUserStatsAsync(userId);
             return Ok(stats);
         }
@@ -83,7 +83,7 @@ namespace Session_Management_System.Controllers
         [HttpGet("available-sessions")]
         public async Task<ActionResult<IEnumerable<SessionResponseDto>>> GetAvailableSessions()
         {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier));
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var sessions = await _userService.GetAvailableSessionsAsync(userId);
             return Ok(sessions);
         }

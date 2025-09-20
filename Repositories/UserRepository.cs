@@ -189,15 +189,15 @@ namespace Session_Management_System.Repositories
         var query = @"
             SELECT s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
                    s.Capacity, (s.Capacity - COUNT(b.BookingId)) AS RemainingCapacity,
-                   s.SessionLink, t.TrainerId, t.Name AS TrainerName
+                   s.SessionLink, t.UserId, CONCAT(t.FirstName, t.LastName) AS TrainerName
             FROM Sessions s
-            INNER JOIN Trainers t ON s.TrainerId = t.TrainerId
+            INNER JOIN Users t ON s.TrainerId = t.UserId
             LEFT JOIN Bookings b ON s.SessionId = b.SessionId
             WHERE s.SessionId NOT IN (
                 SELECT SessionId FROM Bookings WHERE UserId = @UserId
             )
             GROUP BY s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
-                     s.Capacity, s.SessionLink, t.TrainerId, t.Name";
+                     s.Capacity, s.SessionLink, t.UserId, t.FirstName, t.LastName";
 
         using (var command = new SqlCommand(query, connection))
         {
