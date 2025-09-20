@@ -5,7 +5,7 @@ using Session_Management_System.Services.Interfaces;
 
 namespace Session_Management_System.Controllers
 {
-    [Authorize(Roles = "User,Trainer,Admin")]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class SessionController : ControllerBase

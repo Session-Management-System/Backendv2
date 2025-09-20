@@ -1,6 +1,7 @@
 using Session_Management_System.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Session_Management_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Session_Management_System.Controllers
 {
@@ -16,6 +17,7 @@ namespace Session_Management_System.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             try
@@ -30,6 +32,7 @@ namespace Session_Management_System.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             try

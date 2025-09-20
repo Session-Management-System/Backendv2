@@ -8,6 +8,7 @@ namespace Session_Management_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "User,Trainer,Admin")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
