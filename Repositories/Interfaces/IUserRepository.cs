@@ -11,5 +11,7 @@ namespace Session_Management_System.Repositories.Interfaces
         Task<IEnumerable<CompletedSessionDto>> GetCompletedSessionsAsync(int userId);
         Task<UserSessionStatsDto> GetUserStatsAsync(int userId);
         Task<IEnumerable<SessionResponseDto>> GetAvailableSessionsAsync(int userId);
+        Task<bool> IsSessionFullAsync(int sessionId);
+        Task<bool> HasTimeConflictAsync(int userId, DateTime startTime, DateTime endTime);
     }
 }

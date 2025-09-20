@@ -27,6 +27,9 @@ namespace Session_Management_System.Services
                 IsApproved = false
             };
 
+            if (await _repository.HasTimeConflictAsync(trainerId, session.StartTime, session.EndTime))
+                return "You already have a session in this time slot.";
+
             await _repository.CreateSessionAsync(session);
             return "Session created. Waiting for admin approval.";
         }

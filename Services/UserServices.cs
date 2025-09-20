@@ -7,14 +7,26 @@ namespace Session_Management_System.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ISessionRepository _service;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, ISessionRepository sessionRepository)
         {
             _userRepository = userRepository;
+            _service = sessionRepository;
         }
 
-        public Task<int> BookSessionAsync(int userId, int sessionId) =>
-            _userRepository.BookSessionAsync(userId, sessionId);
+        public async Task<string> BookSessionAsync(int userId, int sessionId)
+        {
+            if (await _userRepository.IsSessionFullAsync(sessionId))
+                    return "Session is already full.";
+                    
+            var session = await _service.GetSessionByIdAsync(sessionId);
+
+            if (await _userRepository.HasTimeConflictAsync(userId, session.StartTime, session.EndTime))
+                return "You already have a session in this time slot.";
+
+            return (await _userRepository.BookSessionAsync(userId, sessionId)).ToString();
+        }
 
         public Task<bool> CancelBookingAsync(int bookingId, int userId) =>
             _userRepository.CancelBookingAsync(bookingId, userId);

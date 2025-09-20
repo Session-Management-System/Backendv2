@@ -1,15 +1,8 @@
 // SessionDto.cs
+using System.ComponentModel.DataAnnotations;
+
 namespace Session_Management_System.DTOs
 {
-    public class SessionDto
-    {
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public int Capacity { get; set; }
-        public string? SessionLink { get; set; }
-    }
 
     public class SessionResponseDto
     {
@@ -28,13 +21,21 @@ namespace Session_Management_System.DTOs
 
     public class SessionUpdateDto
     {
+
+        [Required]
         public int SessionId { get; set; }
+        [Required]
         public string Title { get; set; } = string.Empty;
+        [Required]
         public string? Description { get; set; }
+        [Required]
         public DateTime? StartTime { get; set; }
+        [Required]
         public DateTime? EndTime { get; set; }
+        [Required]
         public int? Capacity { get; set; }
+        [Required]
         public string? SessionLink { get; set; }
-        
+
     }
 }

@@ -10,5 +10,6 @@ namespace Session_Management_System.Repositories.Interfaces
         Task<(int completed, int upcoming)> GetSessionStatsAsync(int trainerId);
         Task<List<SessionResponseDto>> GetApprovedSessionsByTrainerAsync(int trainerId);
         Task<List<SessionResponseDto>> GetPendingSessionsByTrainerAsync(int trainerId);
+        Task<bool> HasTimeConflictAsync(int trainerId, DateTime startTime, DateTime endTime);
     }
 }

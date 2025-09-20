@@ -1,4 +1,5 @@
 using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Abstractions;
 using Session_Management_System.DTOs;
 using Session_Management_System.Repositories.Interfaces;
 
@@ -181,12 +182,12 @@ namespace Session_Management_System.Repositories
         }
 
         public async Task<IEnumerable<SessionResponseDto>> GetAvailableSessionsAsync(int userId)
-{
-    var sessions = new List<SessionResponseDto>();
-    using (var connection = new SqlConnection(_connectionString))
-    {
-        await connection.OpenAsync();
-        var query = @"
+        {
+            var sessions = new List<SessionResponseDto>();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
             SELECT s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
                    s.Capacity, (s.Capacity - COUNT(b.BookingId)) AS RemainingCapacity,
                    s.SessionLink, t.UserId, CONCAT(t.FirstName, t.LastName) AS TrainerName
@@ -199,32 +200,88 @@ namespace Session_Management_System.Repositories
             GROUP BY s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
                      s.Capacity, s.SessionLink, t.UserId, t.FirstName, t.LastName";
 
-        using (var command = new SqlCommand(query, connection))
-        {
-            command.Parameters.AddWithValue("@UserId", userId);
-            using (var reader = await command.ExecuteReaderAsync())
-            {
-                while (await reader.ReadAsync())
+                using (var command = new SqlCommand(query, connection))
                 {
-                    sessions.Add(new SessionResponseDto
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    using (var reader = await command.ExecuteReaderAsync())
                     {
-                        SessionId = reader.GetInt32(0),
-                        Title = reader.GetString(1),
-                        Description = reader.GetString(2),
-                        StartTime = reader.GetDateTime(3),
-                        EndTime = reader.GetDateTime(4),
-                        Capacity = reader.GetInt32(5),
-                        RemainingCapacity = reader.GetInt32(6),
-                        SessionLink = reader.GetString(7),
-                        TrainerId = reader.GetInt32(8),
-                        TrainerName = reader.GetString(9)
-                    });
+                        while (await reader.ReadAsync())
+                        {
+                            sessions.Add(new SessionResponseDto
+                            {
+                                SessionId = reader.GetInt32(0),
+                                Title = reader.GetString(1),
+                                Description = reader.GetString(2),
+                                StartTime = reader.GetDateTime(3),
+                                EndTime = reader.GetDateTime(4),
+                                Capacity = reader.GetInt32(5),
+                                RemainingCapacity = reader.GetInt32(6),
+                                SessionLink = reader.GetString(7),
+                                TrainerId = reader.GetInt32(8),
+                                TrainerName = reader.GetString(9)
+                            });
+                        }
+                    }
+                }
+            }
+            return sessions;
+        }
+        public async Task<bool> IsSessionFullAsync(int sessionId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Get current count of bookings
+                string countQuery = @"SELECT COUNT(*) 
+                              FROM Bookings 
+                              WHERE SessionId = @SessionId";
+
+                using (var cmd = new SqlCommand(countQuery, connection))
+                {
+                    cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                    int bookingCount = (int)await cmd.ExecuteScalarAsync();
+
+                    // Get session capacity
+                    string capacityQuery = @"SELECT Capacity 
+                                     FROM Sessions 
+                                     WHERE SessionId = @SessionId";
+
+                    using (var cmdCap = new SqlCommand(capacityQuery, connection))
+                    {
+                        cmdCap.Parameters.AddWithValue("@SessionId", sessionId);
+                        int capacity = (int)await cmdCap.ExecuteScalarAsync();
+
+                        return bookingCount >= capacity;
+                    }
                 }
             }
         }
-    }
-    return sessions;
-}
 
+        public async Task<bool> HasTimeConflictAsync(int userId, DateTime startTime, DateTime endTime)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"
+                SELECT COUNT(*) 
+                FROM Bookings b
+                INNER JOIN Sessions s ON b.SessionId = s.SessionId
+                WHERE b.UserId = @UserId
+                AND s.StartTime < @EndTime 
+                AND @StartTime < s.EndTime";
+
+                using (var cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@StartTime", startTime);
+                    cmd.Parameters.AddWithValue("@EndTime", endTime);
+
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+                }
+            }
+        }
     }
 }

@@ -140,5 +140,30 @@ namespace Session_Management_System.Repositories
 
             return sessions;
         }
+
+        public async Task<bool> HasTimeConflictAsync(int trainerId, DateTime startTime, DateTime endTime)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"
+                SELECT COUNT(*) 
+                FROM Sessions
+                WHERE TrainerId = @TrainerId
+                AND StartTime < @EndTime 
+                AND @StartTime < EndTime";
+
+                using (var cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@TrainerId", trainerId);
+                    cmd.Parameters.AddWithValue("@StartTime", startTime);
+                    cmd.Parameters.AddWithValue("@EndTime", endTime);
+
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+                }
+            }
+        }
     }
 }
