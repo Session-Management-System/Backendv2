@@ -11,6 +11,7 @@ namespace Session_Management_System.Services.Interfaces
         Task<IEnumerable<CompletedSessionDto>> GetCompletedSessionsAsync(int userId);
         Task<UserSessionStatsDto> GetUserStatsAsync(int userId);
         Task<IEnumerable<SessionResponseDto>> GetAvailableSessionsAsync(int userId);
-
+        Task<UserDetails> GetUserDetailsAsync(int userId);
+        Task<bool> UpdateUserProfileAsync(int userId, UpdateProfileDto userdetails);
     }
 }

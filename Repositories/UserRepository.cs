@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Abstractions;
 using Session_Management_System.DTOs;
+using Session_Management_System.Models;
 using Session_Management_System.Repositories.Interfaces;
 
 namespace Session_Management_System.Repositories
@@ -280,6 +281,90 @@ namespace Session_Management_System.Repositories
 
                     int count = (int)await cmd.ExecuteScalarAsync();
                     return count > 0;
+                }
+            }
+        }
+        public async Task<UserDetails?> GetUserDetailsAsync(int userId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"
+            SELECT u.UserId, u.FirstName, u.LastName, u.Email, r.RoleName
+            FROM Users u
+            JOIN Roles r ON u.RoleId = r.RoleId
+            WHERE u.UserId = @UserId";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            return new UserDetails
+                            {
+                                userId = reader.GetInt32(0),
+                                FirstName = reader.GetString(1),
+                                LastName = reader.GetString(2),
+                                Email = reader.GetString(3),
+                                Role = reader.GetString(4),
+                            };
+                        }
+                    }
+                }
+            }
+            return null; // no user found
+        }
+
+        public async Task<bool> UpdateUserProfileAsync(int userId, string firstName, string lastName, string email, string newPasswordHash)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"UPDATE Users
+                         SET FirstName = @FirstName,
+                             LastName = @LastName,
+                             Email = @Email,
+                             PasswordHash = @newPasswordHash
+                         WHERE UserId = @UserId";
+
+                using (var cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@FirstName", firstName);
+                    cmd.Parameters.AddWithValue("@LastName", lastName);
+                    cmd.Parameters.AddWithValue("@Email", email);
+                    cmd.Parameters.AddWithValue("@PasswordHash", newPasswordHash);
+                    int rows = await cmd.ExecuteNonQueryAsync();
+                    return rows > 0;
+                }
+            }
+        }
+
+        public async Task<bool> UpdateUserProfileAsync(int userId, string firstName, string lastName, string email)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"UPDATE Users
+                         SET FirstName = @FirstName,
+                             LastName = @LastName,
+                             Email = @Email,
+                         WHERE UserId = @UserId";
+
+                using (var cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@FirstName", firstName);
+                    cmd.Parameters.AddWithValue("@LastName", lastName);
+                    cmd.Parameters.AddWithValue("@Email", email);
+                    int rows = await cmd.ExecuteNonQueryAsync();
+                    return rows > 0;
                 }
             }
         }

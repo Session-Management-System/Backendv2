@@ -33,7 +33,7 @@ namespace Session_Management_System.DTOs
         public string Password { get; set; } = string.Empty;
 
     }
-    
+
     public class AuthResponse
     {
         public string Token { get; set; } = string.Empty;
@@ -42,4 +42,26 @@ namespace Session_Management_System.DTOs
         public string Role { get; set; } = string.Empty;
 
     }
+
+    public class UserDetails
+    {
+        public int userId { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? Role { get; set; }
+    }
+
+    public class UpdateProfileDto
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? OldPassword { get; set; }
+        [StringLength(20, MinimumLength = 8, ErrorMessage = "Password must be 8-20 characters long")]
+        [RegularExpression("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&]).+$",
+        ErrorMessage = "Password must contain uppercase, lowercase, number, and special character")]
+        public string? NewPassword { get; set; }
+    }
+
 }

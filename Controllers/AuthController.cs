@@ -22,8 +22,15 @@ namespace Session_Management_System.Controllers
         {
             try
             {
-                var response = await _authService.RegisterAsync(dto);
-                return Ok(response);
+                if (dto.RoleId == 1 || dto.RoleId == 2)
+                {
+                    var response = await _authService.RegisterAsync(dto);
+                    return Ok(response);
+                }
+                else
+                {
+                    return BadRequest("Invalid Role Type");
+                }
             }
             catch (Exception ex)
             {

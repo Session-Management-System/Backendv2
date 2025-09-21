@@ -61,7 +61,7 @@ namespace Session_Management_System.Services
         }
 
         // -------------------- PASSWORD HELPERS --------------------
-        private string HashPassword(string password)
+        protected string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
             var bytes = Encoding.UTF8.GetBytes(password);
@@ -69,7 +69,7 @@ namespace Session_Management_System.Services
             return Convert.ToBase64String(hash);
         }
 
-        private bool VerifyPassword(string password, string storedHash)
+        protected bool VerifyPassword(string password, string storedHash)
         {
             string curr = HashPassword(password);
             return curr.Equals(storedHash);

@@ -3,6 +3,7 @@ using Session_Management_System.Services.Interfaces;
 using Session_Management_System.DTOs;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Identity.Client;
 
 namespace Session_Management_System.Controllers
 {
@@ -87,5 +88,32 @@ namespace Session_Management_System.Controllers
             var sessions = await _userService.GetAvailableSessionsAsync(userId);
             return Ok(sessions);
         }
+
+        [HttpGet("details")]
+        [Authorize]
+        public async Task<ActionResult> GetUserDetails()
+        {
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var details = await _userService.GetUserDetailsAsync(userId);
+            return Ok(details);
+        }
+
+        [HttpPut("update-profile")]
+        [Authorize(Roles = "User, Trainer")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto userdetails)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            
+            
+            var updated = await _userService.UpdateUserProfileAsync(userId, userdetails);
+
+            if (!updated)
+                return BadRequest("Failed to update profile.");
+
+            return Ok("Profile updated successfully.");
+        }
+
+
+
     }
 }

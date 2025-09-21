@@ -4,22 +4,29 @@ using Session_Management_System.Services.Interfaces;
 
 namespace Session_Management_System.Services
 {
-    public class UserService : IUserService
+    public class UserService : AuthService,IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly ISessionRepository _service;
+        private readonly IAuthRepository _authRepo;
 
-        public UserService(IUserRepository userRepository, ISessionRepository sessionRepository)
+        public UserService(
+            IUserRepository userRepository,
+            ISessionRepository sessionRepository,
+            IAuthRepository authRepository,
+            IConfiguration configuration
+        ) : base(authRepository, configuration)
         {
             _userRepository = userRepository;
             _service = sessionRepository;
+            _authRepo = authRepository;
         }
 
         public async Task<string> BookSessionAsync(int userId, int sessionId)
         {
             if (await _userRepository.IsSessionFullAsync(sessionId))
-                    return "Session is already full.";
-                    
+                return "Session is already full.";
+
             var session = await _service.GetSessionByIdAsync(sessionId);
 
             if (await _userRepository.HasTimeConflictAsync(userId, session.StartTime, session.EndTime))
@@ -43,8 +50,36 @@ namespace Session_Management_System.Services
         public Task<UserSessionStatsDto> GetUserStatsAsync(int userId) =>
             _userRepository.GetUserStatsAsync(userId);
 
-        public Task<IEnumerable<SessionResponseDto>> GetAvailableSessionsAsync(int userId)=>
+        public Task<IEnumerable<SessionResponseDto>> GetAvailableSessionsAsync(int userId) =>
             _userRepository.GetAvailableSessionsAsync(userId);
 
+        public Task<UserDetails> GetUserDetailsAsync(int userId) =>
+            _userRepository.GetUserDetailsAsync(userId);
+
+        public async Task<bool> UpdateUserProfileAsync(int userId, UpdateProfileDto userdetails)
+        {
+            if (userdetails.OldPassword == null || userdetails.NewPassword == null)
+            {
+                return await _userRepository.UpdateUserProfileAsync(userId, userdetails.FirstName, userdetails.LastName, userdetails.Email);
+            }
+            else
+            {
+                var user = await _authRepo.GetUserByEmailAsync(userdetails.Email);
+
+                if (user == null || !VerifyPassword(userdetails.OldPassword, user.PasswordHash))
+                    throw new InvalidOperationException("Invalid credentials");
+
+                // hash the new password
+                var newPasswordHash = HashPassword(userdetails.NewPassword);
+
+                return await _userRepository.UpdateUserProfileAsync(
+                    userId,
+                    userdetails.FirstName,
+                    userdetails.LastName,
+                    userdetails.Email,
+                    newPasswordHash
+                );
+            }
+        }
     }
 }
