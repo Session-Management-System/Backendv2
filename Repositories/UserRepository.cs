@@ -82,7 +82,8 @@ namespace Session_Management_System.Repositories
                 LEFT JOIN Bookings b2 ON s.SessionId = b2.SessionId
                 WHERE b.UserId = @UserId {extraCondition}
                 GROUP BY b.BookingId, s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
-                         s.Capacity, s.IsApproved, s.SessionLink, s.TrainerId, u.FirstName, u.LastName";
+                         s.Capacity, s.IsApproved, s.SessionLink, s.TrainerId, u.FirstName, u.LastName
+                ORDER BY s.StartTime DESC";
 
             using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@UserId", userId);
@@ -126,7 +127,8 @@ namespace Session_Management_System.Repositories
                 JOIN Users u ON s.TrainerId = u.UserId
                 WHERE b.UserId = @UserId AND s.EndTime < GETDATE()
                 GROUP BY s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
-                         s.Capacity, s.SessionLink, u.FirstName, u.LastName";
+                         s.Capacity, s.SessionLink, u.FirstName, u.LastName
+                ORDER BY s.StartTime DESC";
 
             using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@UserId", userId);
@@ -197,7 +199,8 @@ namespace Session_Management_System.Repositories
                 SELECT SessionId FROM Bookings WHERE UserId = @UserId
             )
             GROUP BY s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime,
-                     s.Capacity, s.SessionLink, t.UserId, t.FirstName, t.LastName";
+                     s.Capacity, s.SessionLink, t.UserId, t.FirstName, t.LastName
+            ORDER BY s.StartTime DESC";
 
                 using (var command = new SqlCommand(query, connection))
                 {
@@ -336,7 +339,7 @@ namespace Session_Management_System.Repositories
                     cmd.Parameters.AddWithValue("@FirstName", firstName);
                     cmd.Parameters.AddWithValue("@LastName", lastName);
                     cmd.Parameters.AddWithValue("@Email", email);
-                    cmd.Parameters.AddWithValue("@PasswordHash", newPasswordHash);
+                    cmd.Parameters.AddWithValue("@newPasswordHash", newPasswordHash);
                     int rows = await cmd.ExecuteNonQueryAsync();
                     return rows > 0;
                 }
