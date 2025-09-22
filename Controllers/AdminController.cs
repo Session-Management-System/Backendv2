@@ -19,8 +19,21 @@ namespace Session_Management_System.Controllers
         [HttpGet("pending-sessions")]
         public async Task<IActionResult> GetPendingApprovelSessions()
         {
-            var sessions = await _service.GetPendingSessionsAsync();
-            return Ok(sessions);
+            var results = await _service.GetPendingSessionsAsync();
+
+            var response = results.Select(r => new
+            {
+                r.Session.SessionId,
+                r.Session.Title,
+                r.Session.StartTime,
+                r.Session.EndTime,
+                r.Session.Capacity,
+                r.Session.TrainerId,
+                r.Session.IsApproved,
+                TrainerName = r.TrainerName
+            });
+
+            return Ok(response);
         }
 
         [HttpPost("approve-session/{id}")]

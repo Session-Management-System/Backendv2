@@ -4,7 +4,7 @@ namespace Session_Management_System.Repositories.Interfaces
 {
     public interface IAdminRepository
     {
-        Task<IEnumerable<Session>> GetPendingSessionsAsync();
+        Task<IEnumerable<(Session Session, string TrainerName)>> GetPendingSessionsAsync();
         Task<bool> ApproveSessionAsync(int sessionId);
         Task<bool> RejectSessionAsync(int sessionId);
         Task<object> UserCountStatsAsync();

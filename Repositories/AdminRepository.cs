@@ -13,21 +13,28 @@ namespace Session_Management_System.Repositories
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public async Task<IEnumerable<Session>> GetPendingSessionsAsync()
+        public async Task<IEnumerable<(Session Session, string TrainerName)>> GetPendingSessionsAsync()
         {
-            var sessions = new List<Session>();
+            var results = new List<(Session, string)>();
 
             using (var conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
-                string query = @"SELECT * FROM Sessions WHERE IsApproved = 0";
+
+                string query = @"
+            SELECT s.SessionId, s.Title, s.StartTime, s.EndTime, 
+                   s.Capacity, s.TrainerId, s.IsApproved,
+                   u.FirstName, u.LastName
+            FROM Sessions s
+            INNER JOIN Users u ON s.TrainerId = u.UserId
+            WHERE s.IsApproved = 0";
 
                 using (var cmd = new SqlCommand(query, conn))
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
-                        sessions.Add(new Session
+                        var session = new Session
                         {
                             SessionId = reader.GetInt32(reader.GetOrdinal("SessionId")),
                             Title = reader.GetString(reader.GetOrdinal("Title")),
@@ -36,11 +43,17 @@ namespace Session_Management_System.Repositories
                             Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
                             TrainerId = reader.GetInt32(reader.GetOrdinal("TrainerId")),
                             IsApproved = reader.GetBoolean(reader.GetOrdinal("IsApproved"))
-                        });
+                        };
+
+                        string trainerName =
+                            $"{reader.GetString(reader.GetOrdinal("FirstName"))} {reader.GetString(reader.GetOrdinal("LastName"))}";
+
+                        results.Add((session, trainerName));
                     }
                 }
             }
-            return sessions;
+
+            return results;
         }
 
         public async Task<bool> ApproveSessionAsync(int sessionId)

@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic;
 using Session_Management_System.Models;
 using Session_Management_System.Repositories.Interfaces;
 using Session_Management_System.Services.Interfaces;
@@ -16,7 +15,7 @@ public class AdminService : IAdminService
         _emailservice = emailservice;
     }
 
-    public Task<IEnumerable<Session>> GetPendingSessionsAsync() => _repo.GetPendingSessionsAsync();
+    public Task<IEnumerable<(Session Session, string TrainerName)>> GetPendingSessionsAsync() => _repo.GetPendingSessionsAsync();
     public async Task<bool> ApproveSessionAsync(int id)
     {
         string email = await _repo.GetEmailId(id);
