@@ -15,11 +15,13 @@ namespace Session_Management_System.Services
     {
         private readonly IAuthRepository _authRepo;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
-        public AuthService(IAuthRepository authRepo, IConfiguration config)
+        public AuthService(IAuthRepository authRepo, IConfiguration config, IEmailService emailService)
         {
             _authRepo = authRepo;
             _config = config;
+            _emailService = emailService;
         }
 
         // -------------------- REGISTER --------------------
@@ -107,5 +109,52 @@ namespace Session_Management_System.Services
                 Role = roleName
             };
         }
+        public async Task<string> GenerateAndSendOtpAsync(string email)
+        {
+            string otp = null;
+
+            do
+            {
+                otp = new Random().Next(100000, 999999).ToString();
+            } while (await _authRepo.otpInDb(otp));
+
+            var otpEntity = new OTP
+            {
+                Email = email,
+                OTPCode = otp,
+                ExpiryTime = DateTime.UtcNow.AddMinutes(5),
+                IsUsed = false
+            };
+
+            await _authRepo.SaveOtpAsync(otpEntity);
+
+            await _emailService.SendEmailAsync(email, "OTP Verification",
+                $"Your OTP is: <b>{otp}</b>. It will expire in 5 minutes.");
+
+            return otp;
+        }
+
+        public async Task<bool> VerifyOtpAsync(string email, string otpCode)
+        {
+            var latestOtp = await _authRepo.GetLatestOtpAsync(email);
+
+            if (latestOtp == null || latestOtp.IsUsed || latestOtp.ExpiryTime < DateTime.UtcNow)
+                return false;
+
+            if (latestOtp.OTPCode == otpCode)
+            {
+                await _authRepo.MarkOtpAsUsedAsync(latestOtp.OtpId);
+                return true;
+            }
+
+            return false;
+        }
+        
+        public async Task<bool> UpdatePasswordAsync(string email, string newPassword)
+        {
+            string hashedPassword = HashPassword(newPassword);
+            return await _authRepo.UpdatePasswordAsync(email, hashedPassword);
+        }
+
     }
 }

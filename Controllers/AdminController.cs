@@ -33,7 +33,7 @@ namespace Session_Management_System.Controllers
         [HttpPost("reject-session/{id}")]
         public async Task<IActionResult> RejectSession(int id, [FromBody] string comment)
         {
-            var success = await _service.RejectSessionAsync(id);
+            var success = await _service.RejectSessionAsync(id,comment);
             return success ? Ok(new { Message = "Session rejected and deleted." }) : NotFound("Session not found.");
         }
 

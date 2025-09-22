@@ -24,7 +24,8 @@ namespace Session_Management_System.Services
                 TrainerId = trainerId,
                 StartTime = dto.StartTime,
                 EndTime = dto.EndTime,
-                IsApproved = false
+                IsApproved = false,
+                SessionLink = dto.SessionLink
             };
 
             if (await _repository.HasTimeConflictAsync(trainerId, session.StartTime, session.EndTime))

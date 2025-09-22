@@ -34,12 +34,7 @@ namespace Session_Management_System.Controllers
         public async Task<IActionResult> UpdateSession([FromBody] SessionUpdateDto dto) =>
             Ok(new { Message = await _service.UpdateSessionAsync(dto) });
 
-        [Authorize(Roles = "Admin")]
-        [HttpPut("approve/{id}")]
-        public async Task<IActionResult> ApproveSession(int id, [FromQuery] bool approve = true) =>
-            Ok(new { Message = await _service.ApproveSessionAsync(id, approve) });
-
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Trainer,Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSession(int id) =>
             Ok(new { Message = await _service.DeleteSessionAsync(id) });

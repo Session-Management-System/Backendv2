@@ -8,5 +8,6 @@ namespace Session_Management_System.Repositories.Interfaces
         Task<bool> ApproveSessionAsync(int sessionId);
         Task<bool> RejectSessionAsync(int sessionId);
         Task<object> UserCountStatsAsync();
+        Task<string> GetEmailId(int sessionId);
     }
 }

@@ -2,97 +2,121 @@ using Microsoft.Data.SqlClient;
 using Session_Management_System.Models;
 using Session_Management_System.Repositories.Interfaces;
 
-public class AdminRepository : IAdminRepository
+namespace Session_Management_System.Repositories
 {
-    private readonly string _connectionString;
-
-    public AdminRepository(IConfiguration configuration)
+    public class AdminRepository : IAdminRepository
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection");
-    }
+        private readonly string _connectionString;
 
-    public async Task<IEnumerable<Session>> GetPendingSessionsAsync()
-    {
-        var sessions = new List<Session>();
-
-        using (var conn = new SqlConnection(_connectionString))
+        public AdminRepository(IConfiguration configuration)
         {
-            await conn.OpenAsync();
-            string query = @"SELECT * FROM Sessions WHERE IsApproved = 0";
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
 
-            using (var cmd = new SqlCommand(query, conn))
-            using (var reader = await cmd.ExecuteReaderAsync())
+        public async Task<IEnumerable<Session>> GetPendingSessionsAsync()
+        {
+            var sessions = new List<Session>();
+
+            using (var conn = new SqlConnection(_connectionString))
             {
-                while (await reader.ReadAsync())
+                await conn.OpenAsync();
+                string query = @"SELECT * FROM Sessions WHERE IsApproved = 0";
+
+                using (var cmd = new SqlCommand(query, conn))
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    sessions.Add(new Session
+                    while (await reader.ReadAsync())
                     {
-                        SessionId = reader.GetInt32(reader.GetOrdinal("SessionId")),
-                        Title = reader.GetString(reader.GetOrdinal("Title")),
-                        StartTime = reader.GetDateTime(reader.GetOrdinal("StartTime")),
-                        EndTime = reader.GetDateTime(reader.GetOrdinal("EndTime")),
-                        Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
-                        TrainerId = reader.GetInt32(reader.GetOrdinal("TrainerId")),
-                        IsApproved = reader.GetBoolean(reader.GetOrdinal("IsApproved"))
-                    });
+                        sessions.Add(new Session
+                        {
+                            SessionId = reader.GetInt32(reader.GetOrdinal("SessionId")),
+                            Title = reader.GetString(reader.GetOrdinal("Title")),
+                            StartTime = reader.GetDateTime(reader.GetOrdinal("StartTime")),
+                            EndTime = reader.GetDateTime(reader.GetOrdinal("EndTime")),
+                            Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
+                            TrainerId = reader.GetInt32(reader.GetOrdinal("TrainerId")),
+                            IsApproved = reader.GetBoolean(reader.GetOrdinal("IsApproved"))
+                        });
+                    }
+                }
+            }
+            return sessions;
+        }
+
+        public async Task<bool> ApproveSessionAsync(int sessionId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                string query = "UPDATE Sessions SET IsApproved = 1 WHERE SessionId = @SessionId";
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                    return await cmd.ExecuteNonQueryAsync() > 0;
                 }
             }
         }
-        return sessions;
-    }
 
-    public async Task<bool> ApproveSessionAsync(int sessionId)
-    {
-        using (var conn = new SqlConnection(_connectionString))
+        public async Task<bool> RejectSessionAsync(int sessionId)
         {
-            await conn.OpenAsync();
-            string query = "UPDATE Sessions SET IsApproved = 1 WHERE SessionId = @SessionId";
-
-            using (var cmd = new SqlCommand(query, conn))
+            using (var conn = new SqlConnection(_connectionString))
             {
-                cmd.Parameters.AddWithValue("@SessionId", sessionId);
-                return await cmd.ExecuteNonQueryAsync() > 0;
+                await conn.OpenAsync();
+                string query = "DELETE FROM Sessions WHERE SessionId = @SessionId AND IsApproved = 0";
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                    return await cmd.ExecuteNonQueryAsync() > 0;
+                }
             }
         }
-    }
 
-    public async Task<bool> RejectSessionAsync(int sessionId)
-    {
-        using (var conn = new SqlConnection(_connectionString))
+        public async Task<object> UserCountStatsAsync()
         {
-            await conn.OpenAsync();
-            string query = "DELETE FROM Sessions WHERE SessionId = @SessionId AND IsApproved = 0";
-
-            using (var cmd = new SqlCommand(query, conn))
+            using (var conn = new SqlConnection(_connectionString))
             {
-                cmd.Parameters.AddWithValue("@SessionId", sessionId);
-                return await cmd.ExecuteNonQueryAsync() > 0;
-            }
-        }
-    }
-
-    public async Task<object> UserCountStatsAsync()
-    {
-        using (var conn = new SqlConnection(_connectionString))
-        {
-            await conn.OpenAsync();
-            string query = @"SELECT 
+                await conn.OpenAsync();
+                string query = @"SELECT 
                                 (SELECT COUNT(*) FROM Users WHERE RoleId = '1') AS UserCount,
                                 (SELECT COUNT(*) FROM Users WHERE RoleId = '2') AS TrainerCount";
 
-            using (var cmd = new SqlCommand(query, conn))
-            using (var reader = await cmd.ExecuteReaderAsync())
-            {
-                if (await reader.ReadAsync())
+                using (var cmd = new SqlCommand(query, conn))
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    return new
+                    if (await reader.ReadAsync())
                     {
-                        UserCount = reader.GetInt32(reader.GetOrdinal("UserCount")),
-                        TrainerCount = reader.GetInt32(reader.GetOrdinal("TrainerCount"))
-                    };
+                        return new
+                        {
+                            UserCount = reader.GetInt32(reader.GetOrdinal("UserCount")),
+                            TrainerCount = reader.GetInt32(reader.GetOrdinal("TrainerCount"))
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+
+        public async Task<string> GetEmailId(int sessionId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+
+                const string query = @"
+                SELECT u.email
+                FROM users u
+                INNER JOIN sessions s ON u.UserId = s.Trainerid
+                WHERE s.SessionId = @SessionId;";
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@SessionId", sessionId);
+                    var result = await cmd.ExecuteScalarAsync();
+                    return result == DBNull.Value ? null : result?.ToString();                    
                 }
             }
         }
-        return null;
     }
 }

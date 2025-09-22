@@ -9,17 +9,20 @@ namespace Session_Management_System.Services
         private readonly IUserRepository _userRepository;
         private readonly ISessionRepository _service;
         private readonly IAuthRepository _authRepo;
+        private readonly IEmailService _mailService;
 
         public UserService(
             IUserRepository userRepository,
             ISessionRepository sessionRepository,
             IAuthRepository authRepository,
-            IConfiguration configuration
-        ) : base(authRepository, configuration)
+            IConfiguration configuration,
+            IEmailService emailService
+        ) : base(authRepository, configuration, emailService)
         {
             _userRepository = userRepository;
             _service = sessionRepository;
             _authRepo = authRepository;
+            _mailService = emailService;
         }
 
         public async Task<string> BookSessionAsync(int userId, int sessionId)
@@ -32,14 +35,20 @@ namespace Session_Management_System.Services
             if (await _userRepository.HasTimeConflictAsync(userId, session.StartTime, session.EndTime))
                 return "You already have a session in this time slot.";
 
+            UserDetails user = await _userRepository.GetUserDetailsAsync(userId);
+            await _mailService.SendEmailAsync(user.Email, "Session Booking Confirmation",
+                $"Your session '{session.Title}' has been Booked.<br/>" +
+                $"Date: {session.StartTime} - {session.EndTime}<br/>" +
+                $"Description: {session.Description}</br>" +
+                $"You can Join the Session by loging into the portal!!!");
+
             return (await _userRepository.BookSessionAsync(userId, sessionId)).ToString();
         }
 
         public Task<bool> CancelBookingAsync(int bookingId, int userId) =>
             _userRepository.CancelBookingAsync(bookingId, userId);
 
-        public Task<IEnumerable<BookingResponseDto>> GetUserBookingsAsync(int userId) =>
-            _userRepository.GetUserBookingsAsync(userId);
+        public Task<IEnumerable<BookingResponseDto>> GetUserBookingsAsync(int userId) => _userRepository.GetUserBookingsAsync(userId);
 
         public Task<IEnumerable<BookingResponseDto>> GetUpcomingBookingsAsync(int userId) =>
             _userRepository.GetUpcomingBookingsAsync(userId);

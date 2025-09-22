@@ -20,16 +20,25 @@ namespace Session_Management_System.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
+            bool isValid = false;
             try
             {
-                if (dto.RoleId == 1 || dto.RoleId == 2)
+                isValid = await _authService.VerifyOtpAsync(dto.Email, dto.otp);
+                if (isValid)
                 {
-                    var response = await _authService.RegisterAsync(dto);
-                    return Ok(response);
+                    if (dto.RoleId == 1 || dto.RoleId == 2)
+                    {
+                        var response = await _authService.RegisterAsync(dto);
+                        return Ok(response);
+                    }
+                    else
+                    {
+                        return BadRequest("Invalid Role Type");
+                    }
                 }
                 else
                 {
-                    return BadRequest("Invalid Role Type");
+                    return BadRequest("Invalid or expired OTP.");
                 }
             }
             catch (Exception ex)
@@ -51,6 +60,41 @@ namespace Session_Management_System.Controllers
             {
                 return Unauthorized(new { message = ex.Message });
             }
+        }
+
+        [HttpPost("Send-otp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SendOtp([FromBody] string email)
+        {
+            try
+            {
+                var response = await _authService.GenerateAndSendOtpAsync(email);
+                return Ok("Otp sent");
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPassword password)
+        {
+            bool isValid = false;
+            isValid = await _authService.VerifyOtpAsync(password.Email, password.Otp);
+            if (isValid)
+            {
+                if (await _authService.UpdatePasswordAsync(password.Email, password.NewPassword))
+                    return Ok("Password Updated");
+                else
+                    return BadRequest("Password Not updated!!! Please Retry.");
+            }
+            else
+            {
+                return BadRequest("Invalid or expired OTP.");
+            }
+
         }
     }
 }

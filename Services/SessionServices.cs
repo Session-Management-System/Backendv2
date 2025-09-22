@@ -70,15 +70,6 @@ namespace Session_Management_System.Services
             return "Session updated successfully";
         }
 
-        public async Task<string> ApproveSessionAsync(int sessionId, bool approve)
-        {
-            var session = await _repo.GetSessionByIdAsync(sessionId);
-            if (session == null) return "Session not found";
-
-            await _repo.ApproveSessionAsync(sessionId, approve);
-            return approve ? "Session approved" : "Session disapproved";
-        }
-
         public async Task<string> DeleteSessionAsync(int sessionId)
         {
             var session = await _repo.GetSessionByIdAsync(sessionId);

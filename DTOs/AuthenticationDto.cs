@@ -20,6 +20,7 @@ namespace Session_Management_System.DTOs
         ErrorMessage = "Password must contain uppercase, lowercase, number, and special character")]
         public string Password { get; set; } = string.Empty;
         public int RoleId { get; set; } = 1;
+        public string? otp { get; set; }
     }
 
     public class LoginDto
@@ -64,4 +65,16 @@ namespace Session_Management_System.DTOs
         public string? NewPassword { get; set; }
     }
 
+    public class ForgotPassword
+    {
+        [Required]
+        [EmailAddress]
+        public string? Email { get; set; }
+        [Required]
+        public string? Otp { get; set; }
+        [StringLength(20, MinimumLength = 8, ErrorMessage = "Password must be 8-20 characters long")]
+        [RegularExpression("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&]).+$",
+        ErrorMessage = "Password must contain uppercase, lowercase, number, and special character")]
+        public string? NewPassword { get; set; }
+    }
 }

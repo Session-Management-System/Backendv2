@@ -1,7 +1,5 @@
 using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Abstractions;
 using Session_Management_System.DTOs;
-using Session_Management_System.Models;
 using Session_Management_System.Repositories.Interfaces;
 
 namespace Session_Management_System.Repositories
@@ -354,7 +352,7 @@ namespace Session_Management_System.Repositories
                 string query = @"UPDATE Users
                          SET FirstName = @FirstName,
                              LastName = @LastName,
-                             Email = @Email,
+                             Email = @Email
                          WHERE UserId = @UserId";
 
                 using (var cmd = new SqlCommand(query, connection))

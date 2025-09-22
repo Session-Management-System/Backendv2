@@ -127,18 +127,6 @@ namespace Session_Management_System.Repositories
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task ApproveSessionAsync(int sessionId, bool approve)
-        {
-            using var conn = new SqlConnection(_connectionString);
-            await conn.OpenAsync();
-
-            var cmd = new SqlCommand("UPDATE Sessions SET IsApproved = @IsApproved WHERE SessionId = @SessionId", conn);
-            cmd.Parameters.AddWithValue("@IsApproved", approve);
-            cmd.Parameters.AddWithValue("@SessionId", sessionId);
-
-            await cmd.ExecuteNonQueryAsync();
-        }
-
         public async Task DeleteSessionAsync(int sessionId)
         {
             using var conn = new SqlConnection(_connectionString);

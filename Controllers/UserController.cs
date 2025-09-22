@@ -103,17 +103,13 @@ namespace Session_Management_System.Controllers
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto userdetails)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            
-            
+
             var updated = await _userService.UpdateUserProfileAsync(userId, userdetails);
 
             if (!updated)
-                return BadRequest("Failed to update profile.");
+                return BadRequest(new { message = "Failed to update profile." });
 
-            return Ok("Profile updated successfully.");
+            return Ok(new {message= "Profile updated successfully."});
         }
-
-
-
     }
 }
