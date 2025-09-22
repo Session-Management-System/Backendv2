@@ -47,5 +47,8 @@ public class AdminService : IAdminService
 
         return await _repo.RejectSessionAsync(id);
     }
-    public Task<object> UserCountStats() => _repo.UserCountStatsAsync();
+    public Task<object> UserCountStatsAsync() => _repo.UserCountStatsAsync();
+    public Task<IEnumerable<User>> GetUserDetailsAsync(int role) => _repo.GetUserDetailsAsync(role);
+
+    public async Task<(int totalSessions, int completedSessions)> GetSessionStatsAsync() => await _repo.GetSessionStatsAsync();
 }

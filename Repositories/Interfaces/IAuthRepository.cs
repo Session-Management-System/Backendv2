@@ -13,5 +13,6 @@ namespace Session_Management_System.Repositories.Interfaces
         Task<OTP?> GetLatestOtpAsync(string email);
         Task MarkOtpAsUsedAsync(int otpId);
         Task<bool> UpdatePasswordAsync(string email, string newPasswordHash);
+        Task DeleteExpiredOtpsAsync();
     }
 }

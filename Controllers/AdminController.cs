@@ -33,36 +33,34 @@ namespace Session_Management_System.Controllers
         [HttpPost("reject-session/{id}")]
         public async Task<IActionResult> RejectSession(int id, [FromBody] string comment)
         {
-            var success = await _service.RejectSessionAsync(id,comment);
+            var success = await _service.RejectSessionAsync(id, comment);
             return success ? Ok(new { Message = "Session rejected and deleted." }) : NotFound("Session not found.");
         }
 
         [HttpGet("Active-user-trainers")]
         public async Task<IActionResult> UserCountStats()
         {
-            var count = await _service.UserCountStats();
+            var count = await _service.UserCountStatsAsync();
             return Ok(count);
         }
 
-        // [HttpPost("add-trainer")]
-        // public async Task<IActionResult> AddTrainer([FromBody] AddTrainerDto dto)
-        // {
-        //     var success = await _service.AddTrainerAsync(dto);
-        //     return success ? Ok(new { Message = "Trainer added." }) : BadRequest("Failed to add trainer.");
-        // }
+        [HttpGet("Get-user-Details/{roleId}")]
+        public async Task<IActionResult> GetUserDetails(int roleId)
+        {
+            var User = await _service.GetUserDetailsAsync(roleId);
+            return Ok(User);
+        }
 
-        // [HttpPost("promote-to-trainer/{userId}")]
-        // public async Task<IActionResult> PromoteUserToTrainer(int userId)
-        // {
-        //     var success = await _service.PromoteUserToTrainerAsync(userId);
-        //     return success ? Ok(new { Message = "User promoted to Trainer." }) : NotFound("User not found.");
-        // }
+        [HttpGet("session-stats")]
+        public async Task<IActionResult> GetSessionStats()
+        {
+            var (totalSessions, completedSessions) = await _service.GetSessionStatsAsync();
+            return Ok(new
+            {
+                TotalSessions = totalSessions,
+                CompletedSessions = completedSessions
+            });
+        }
 
-        // [HttpDelete("delete-trainer/{id}")]
-        // public async Task<IActionResult> DeleteTrainer(int id)
-        // {
-        //     var success = await _service.DeleteTrainerAsync(id);
-        //     return success ? Ok(new { Message = "Trainer deleted." }) : NotFound("Trainer not found.");
-        // }
     }
 }

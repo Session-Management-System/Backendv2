@@ -111,6 +111,7 @@ namespace Session_Management_System.Services
         }
         public async Task<string> GenerateAndSendOtpAsync(string email)
         {
+            await _authRepo.DeleteExpiredOtpsAsync();
             string otp = null;
 
             do

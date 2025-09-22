@@ -6,7 +6,9 @@ namespace Session_Management_System.Services.Interfaces
     {
         Task<IEnumerable<Session>> GetPendingSessionsAsync();
         Task<bool> ApproveSessionAsync(int id);
-        Task<bool> RejectSessionAsync(int id,string comment);
-        Task<object> UserCountStats();
+        Task<bool> RejectSessionAsync(int id, string comment);
+        Task<object> UserCountStatsAsync();
+        Task<IEnumerable<User>> GetUserDetailsAsync(int user);
+        Task<(int totalSessions, int completedSessions)> GetSessionStatsAsync();
     }
 }

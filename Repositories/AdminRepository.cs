@@ -114,9 +114,71 @@ namespace Session_Management_System.Repositories
                 {
                     cmd.Parameters.AddWithValue("@SessionId", sessionId);
                     var result = await cmd.ExecuteScalarAsync();
-                    return result == DBNull.Value ? null : result?.ToString();                    
+                    return result == DBNull.Value ? null : result?.ToString();
                 }
             }
+        }
+
+        public async Task<IEnumerable<User>> GetUserDetailsAsync(int roleId)
+        {
+            var users = new List<User>();
+
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                string query = @"SELECT UserId, FirstName, LastName, Email 
+                                FROM Users 
+                                WHERE RoleId = @roleId";
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    // Add parameter safely
+                    cmd.Parameters.AddWithValue("@roleId", roleId);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            users.Add(new User
+                            {
+                                UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                            });
+                        }
+                    }
+                }
+                return users;
+            }
+        }
+        public async Task<(int totalSessions, int completedSessions)> GetSessionStatsAsync()
+        {
+            int total = 0, completed = 0;
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                        SELECT 
+                        COUNT(*) AS TotalSessions,
+                        SUM(CASE WHEN s.EndTime < GETDATE() THEN 1 ELSE 0 END) AS CompletedSessions
+                        FROM Sessions s;";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    await conn.OpenAsync();
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            total = reader.GetInt32(0);
+                            completed = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
+                        }
+                    }
+                }
+            }
+
+            return (total, completed);
         }
     }
 }

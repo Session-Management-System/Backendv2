@@ -27,7 +27,7 @@ namespace Session_Management_System.Repositories
                   LEFT JOIN Users u ON s.TrainerId = u.UserId
                   LEFT JOIN Bookings b ON s.SessionId = b.SessionId
                   GROUP BY s.SessionId, s.Title, s.Description, s.StartTime, s.EndTime, s.Capacity, s.IsApproved, s.SessionLink, s.TrainerId, u.FirstName, u.LastName
-                  ORDER BY s.StartTime", conn);
+                  ORDER BY s.StartTime DESC", conn);
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())

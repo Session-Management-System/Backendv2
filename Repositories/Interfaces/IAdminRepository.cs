@@ -9,5 +9,7 @@ namespace Session_Management_System.Repositories.Interfaces
         Task<bool> RejectSessionAsync(int sessionId);
         Task<object> UserCountStatsAsync();
         Task<string> GetEmailId(int sessionId);
+        Task<IEnumerable<User>> GetUserDetailsAsync(int role);
+        Task<(int totalSessions, int completedSessions)> GetSessionStatsAsync();
     }
 }

@@ -192,5 +192,15 @@ namespace Session_Management_System.Repositories
             }
         }
 
+        public async Task DeleteExpiredOtpsAsync()
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            string query = @"DELETE FROM OTP WHERE ExpiryTime < GETUTCDATE() OR IsUsed = 1";
+
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 }
